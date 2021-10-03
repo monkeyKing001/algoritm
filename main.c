@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 void	update_data(char **bin_data, char **temp_bucket, unsigned int start, unsigned int end)
 {
 	unsigned int	i;
@@ -8,8 +9,11 @@ void	update_data(char **bin_data, char **temp_bucket, unsigned int start, unsign
 
 	i = start;
 	j = 0;
-	while (i <= end)
-		bin_data[i++] = temp_bucket[j++];
+	while (i <= end){
+		bin_data[i] = temp_bucket[j];
+		i++;
+		j++;
+	}
 	printf("updated_data\n");
 }
 
@@ -18,12 +22,12 @@ void	merge_by_radix(char **bin_data, unsigned int start, unsigned int middle, un
 	unsigned int	left_index = start;
 	unsigned int	right_index = middle + 1;	
 
+	printf("merge_by_radix_exce start : %d middle : %d end : %d\n", start, middle, end);
 	if (start == end)
 		return ;
 	//temp_bucket
-	char	**temp_bucket =(char **)malloc(sizeof(char *) * (start - end + 1));
-	memset(temp_bucket, 0, sizeof(char *) * (start - end + 1));
-	printf("merge_by_radix_exce\n");
+	char	**temp_bucket =(char **)malloc(sizeof(char *) * (end - start + 1));
+	memset(temp_bucket, 0, sizeof(char *) * (end - start + 1));
 	unsigned int	temp_index = 0;
 	while (left_index <= middle && right_index <= end)
 	{
@@ -58,7 +62,7 @@ void	merge_by_radix(char **bin_data, unsigned int start, unsigned int middle, un
 
 void	merge_sort_by_radix(char **bin_data, unsigned int start, unsigned int end, int radix)
 {
-	printf("merge_sort_by_radix_exce\n");
+	printf("merge_sort_by_radix_exce start : %d end : %d \n", start , end);
 	if (start != end)
 	{
 		unsigned int	next_end = (start + end) / 2;
@@ -69,6 +73,7 @@ void	merge_sort_by_radix(char **bin_data, unsigned int start, unsigned int end, 
 	unsigned int	middle;
 	middle = (start + end) / 2;
 	merge_by_radix(bin_data, start, middle, end, radix);
+	printf("merge_completed\n");
 }
 
 void	radix_sort(char **bin_data, unsigned int size, int radix)
@@ -78,21 +83,18 @@ void	radix_sort(char **bin_data, unsigned int size, int radix)
 		merge_sort_by_radix(bin_data, 0, size - 1, radix--);
 }
 
-char *bin_num(long long dec)
+char *bin_num(unsigned long long dec)
 {
-	char			*bin_num;
-	unsigned int	i;
-	unsigned int	bit_max;
+	char	*bin_num;
+	int		bit_max;
 	
-	i = 0;
 	bit_max = 32;
-	bin_num = malloc(sizeof(char) * bit_max + 1);
-	memset(bin_num, '0', bit_max + 1);
-	bin_num[bit_max] = '\0';
-	while (dec > 0)
+	bin_num = malloc(sizeof(char) * (bit_max + 1));
+	memset(bin_num, '0', sizeof(char) * (bit_max + 1));
+	bin_num[bit_max] = 0;
+	while (--bit_max >= 0)
 	{
-		bin_num[bit_max - i] = (dec % 2) + '0';
-		i++;
+		bin_num[bit_max] = (dec % 2) + '0';
 		dec /= 2;
 	}
 	return (bin_num);
@@ -100,8 +102,8 @@ char *bin_num(long long dec)
 
 int main(int argc, char **argv)
 {
-	const unsigned int	max = 5;
-	unsigned long 		*file_data;
+	const unsigned int	max = 500;
+	unsigned long long 	*file_data;
 	char				**bin_data;
 	FILE				*fp;
 	
@@ -115,17 +117,17 @@ int main(int argc, char **argv)
 	fp = fopen(argv[1], "r");
 	if (fp != NULL)
 	{
-		file_data = (unsigned long *)malloc(sizeof(unsigned long) * max);
-		memset(file_data, 0, max);
+		file_data = (unsigned long long *)malloc(sizeof(unsigned long long) * max);
+		memset(file_data, 0, sizeof(unsigned long long) * max);
 	}
 	/* make bin_data */
 	bin_data = (char **)malloc(sizeof(char *) * (max + 1));
-	memset(bin_data, 0, max + 1);
+	memset(bin_data, 0, sizeof(char *) * (max + 1));
 
 	unsigned int i = 0;
 	while (i < max)
 	{
-		fscanf(fp, "%ld",&file_data[i]);
+		fscanf(fp, "%lld", &file_data[i]);
 		i++;
 	}
 	/* close file */
@@ -135,7 +137,7 @@ int main(int argc, char **argv)
 	i = 0;
 	while (i < max)
 	{
-		printf("%ld\n", file_data[i]);
+		printf("%lld\n", file_data[i]);
 		bin_data[i] = bin_num(file_data[i]);
 		printf("bin : %s\n", bin_data[i]);
 		i++;
@@ -148,7 +150,7 @@ int main(int argc, char **argv)
 	i = 0;
 	while (i < max)
 	{
-		printf("bin : %s\n", bin_data[i]);
+		printf("bin[%d] : %s\n", i ,bin_data[i]);
 		i++;
 	}
 	/* free bin_data */
